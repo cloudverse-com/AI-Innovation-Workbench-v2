@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Copy-Item *)",
+      "PowerShell(python -c \"import azure.ai.inference.models as m; print\\([x for x in dir\\(m\\) if 'tool' in x.lower\\(\\) or 'Tool' in x]\\)\")",
+      "PowerShell(python -c \"from azure.ai.inference.models import ChatCompletionsToolDefinition; help\\(ChatCompletionsToolDefinition.__init__\\)\")",
+      "PowerShell(python -c \"import azure.ai.inference.models as m; print\\([x for x in dir\\(m\\) if 'format' in x.lower\\(\\) or 'Format' in x or 'json' in x.lower\\(\\) or 'Json' in x]\\)\")",
+      "PowerShell(python -c \"import azure.ai.projects; print\\(azure.ai.projects.__version__\\)\")",
+      "PowerShell(python -c \"import azure.ai.inference; print\\(azure.ai.inference.__version__\\)\")",
+      "Bash(pip show *)",
+      "Bash(Select-String \"Name|Version\")",
+      "PowerShell(python -c \"from azure.ai.inference import ChatCompletionsClient; import inspect; src = inspect.getsource\\(ChatCompletionsClient.__init__\\); print\\(src[:1200]\\)\")",
+      "PowerShell(python --version 2>&1)",
+      "Bash(Get-ChildItem -Path \"c:\\\\CloudVerse\\\\AI-Innovation-Workbench-v2\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName, Mode)",
+      "Bash(Format-Table -AutoSize)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}

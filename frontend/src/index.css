@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    @apply h-full;
+  }
+  body {
+    @apply h-full bg-ms-gray-100 text-ms-gray-900 font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root {
+    @apply h-full;
+  }
+}
+
+/* ── Code panel syntax highlighting (Prism.js theme) ─────────────────────── */
+@layer components {
+  .code-panel pre[class*="language-"] {
+    @apply bg-ms-gray-900 text-gray-100 p-4 rounded-lg overflow-auto text-sm font-mono;
+    tab-size: 2;
+  }
+
+  .code-panel code[class*="language-"] {
+    @apply font-mono text-sm;
+  }
+
+  /* Streaming cursor animation */
+  .streaming-cursor::after {
+    content: '▋';
+    @apply inline-block animate-cursor-blink text-ms-blue;
+  }
+
+  /* Chat message bubble */
+  .message-bubble {
+    @apply rounded-2xl px-4 py-3 max-w-[85%] break-words;
+    line-height: 1.6;
+  }
+
+  .message-bubble.user {
+    @apply bg-ms-blue text-white ml-auto rounded-br-sm;
+  }
+
+  .message-bubble.assistant {
+    @apply bg-white text-ms-gray-900 border border-ms-gray-200 shadow-sm rounded-bl-sm;
+  }
+
+  /* Sidebar nav item */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150
+           text-ms-gray-600 hover:bg-ms-gray-200 hover:text-ms-gray-900;
+  }
+
+  .sidebar-item.active {
+    @apply bg-ms-blue text-white hover:bg-ms-blue-dark hover:text-white;
+  }
+
+  /* Settings panel */
+  .settings-label {
+    @apply text-xs font-semibold text-ms-gray-500 uppercase tracking-wider mb-1;
+  }
+
+  .settings-select {
+    @apply w-full text-sm bg-white border border-ms-gray-300 rounded-lg px-3 py-2
+           text-ms-gray-900 focus:outline-none focus:ring-2 focus:ring-ms-blue focus:border-transparent;
+  }
+
+  /* Tool badge */
+  .tool-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+           bg-ms-purple/10 text-ms-purple border border-ms-purple/20;
+  }
+
+  /* Stage indicator */
+  .stage-indicator {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg text-sm;
+  }
+
+  .stage-indicator.pending {
+    @apply bg-ms-gray-100 text-ms-gray-400;
+  }
+
+  .stage-indicator.running {
+    @apply bg-ms-blue/10 text-ms-blue border border-ms-blue/20;
+  }
+
+  .stage-indicator.done {
+    @apply bg-ms-green/10 text-ms-green border border-ms-green/20;
+  }
+
+  .stage-indicator.failed {
+    @apply bg-ms-red/10 text-ms-red border border-ms-red/20;
+  }
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.ms.gray.300') transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-ms-gray-300 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ── Prism.js token colors ───────────────────────────────────────────────── */
+.token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6a9955; }
+.token.punctuation { color: #d4d4d4; }
+.token.property, .token.tag, .token.boolean, .token.number, .token.constant { color: #b5cea8; }
+.token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #ce9178; }
+.token.operator, .token.entity, .token.url { color: #d4d4d4; }
+.token.atrule, .token.attr-value, .token.keyword { color: #569cd6; }
+.token.function, .token.class-name { color: #dcdcaa; }
+.token.regex, .token.important, .token.variable { color: #d16969; }
+.token.decorator { color: #c586c0; }
