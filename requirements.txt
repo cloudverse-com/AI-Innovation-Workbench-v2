@@ -1,0 +1,25 @@
+# AI Innovation Workbench — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Web Framework ──────────────────────────────────────────────────────────
+fastapi>=0.115.0              # Modern async web framework
+uvicorn[standard]>=0.32.0    # ASGI server (use --reload for development)
+python-multipart>=0.0.12     # Required for FastAPI file upload support
+aiofiles>=24.1.0             # Async file reading for static file serving
+
+# ── Microsoft Agent Framework ──────────────────────────────────────────────
+agent-framework              # Agent + FoundryChatClient — core agent SDK
+azure-identity>=1.19.0       # Credential types (AzureKeyCredential, AzureCliCredential)
+
+# ── Configuration ──────────────────────────────────────────────────────────
+python-dotenv>=1.0.1         # Loads .env file into environment variables
+
+# ── Data Validation ────────────────────────────────────────────────────────
+pydantic>=2.0.0              # Request/response validation, JSON schema generation
+
+# ── Document Processing (Demo 01 — Text Extraction Mode) ───────────────────
+docling>=2.15.0              # PDF → Markdown conversion (IBM Docling)
+Pillow>=11.0.0               # Image processing for vision mode
+
+# ── HTTP Client ────────────────────────────────────────────────────────────
+httpx>=0.28.0                # Async HTTP client (used internally by Azure SDK)
