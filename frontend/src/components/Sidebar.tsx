@@ -48,6 +48,15 @@ const DEMOS: Demo[] = [
     supportsSession: true, supportsStreaming: true,
     inputPlaceholder: 'Try: "Remember that I prefer Python" then ask something...',
   },
+  {
+    id: 'demo06', routeId: 'demo-06',
+    title: 'Medical Report Analysis', subtitle: 'Azure Content Understanding',
+    category: 'Advanced Features', icon: '🏥',
+    description: 'Upload a medical report PDF and extract structured fields using Azure AI Content Understanding. No LLM chat — pure document intelligence.',
+    highlights: ['PDF upload (drag & drop)', 'ContentUnderstandingClient', 'AnalysisInput(data=bytes)', 'Structured field extraction'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Upload a medical report PDF to analyze...',
+  },
 ]
 
 const CATEGORY_ORDER: DemoCategory[] = [

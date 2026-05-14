@@ -65,6 +65,18 @@ class Settings:
         )
     )
 
+    # --- Azure Content Understanding (Demo 06) ---
+    # Base endpoint of the Azure AI resource (without /api/projects/...)
+    # e.g. https://cv-foundry-eastus2.services.ai.azure.com/
+    content_understanding_endpoint: str = field(
+        default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ENDPOINT", "")
+    )
+
+    # The analyzer ID created in your Content Understanding resource
+    content_understanding_analyzer_id: str = field(
+        default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ANALYZER_ID", "patient_medical_report")
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(
