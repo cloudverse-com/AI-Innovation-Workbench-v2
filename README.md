@@ -1,5 +1,7 @@
 # AI Innovation Workbench
 
+<img width="1433" height="827" alt="image" src="https://github.com/user-attachments/assets/739bda7c-2456-4dd9-bd3e-f1ce94d1d4ca" />
+
 Interactive demo platform showcasing **Microsoft Azure AI Agent Framework** capabilities through 15 hands-on demos. Each demo runs real code against Azure AI Foundry and shows its own source in the side-by-side code panel.
 
 ## Quick Start
