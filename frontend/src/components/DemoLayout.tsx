@@ -3,6 +3,7 @@ import type { Demo, AppSettings, SystemPrompt } from '../types'
 import { ChatPanel } from './ChatPanel'
 import { CodePanel } from './CodePanel'
 import { ContentUnderstandingPanel } from './ContentUnderstandingPanel'
+import { ContractComparisonPanel } from './ContractComparisonPanel'
 import { SettingsPanel } from './SettingsPanel'
 import { useChat } from '../hooks/useChat'
 
@@ -32,6 +33,15 @@ export function DemoLayout({
 
   const handleSend = (message: string) => {
     sendMessage(message)
+  }
+
+  // Demo 07 gets its own full-width layout — no settings bar or code panel toggle
+  if (demo.id === 'demo07') {
+    return (
+      <div className="flex flex-col h-full overflow-hidden">
+        <ContractComparisonPanel demo={demo} />
+      </div>
+    )
   }
 
   return (
@@ -79,6 +89,8 @@ export function DemoLayout({
           <div className={`flex flex-col overflow-hidden ${panelMode === 'split' ? 'w-1/2 border-r border-ms-gray-200' : 'w-full'}`}>
             {demo.id === 'demo06' ? (
               <ContentUnderstandingPanel demo={demo} />
+            ) : demo.id === 'demo07' ? (
+              <ContractComparisonPanel demo={demo} />
             ) : (
               <ChatPanel
                 demo={demo}

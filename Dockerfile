@@ -10,6 +10,11 @@ RUN npm run build
 # Stage 2: Python runtime with built frontend
 FROM python:3.11-slim
 
+# Install Azure CLI so AzureCliCredential works inside the container
+RUN apt-get update && apt-get install -y curl ca-certificates && \
+    curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt ./

@@ -77,6 +77,28 @@ class Settings:
         default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ANALYZER_ID", "patient_medical_report")
     )
 
+    # --- Contract Comparison (Demo 07) ---
+    # Azure Content Understanding endpoint and credentials for contract analysis
+    contract_cu_base_url: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_BASE_URL", "")
+    )
+    contract_cu_subscription_key: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_SUBSCRIPTION_KEY", "")
+    )
+    contract_cu_api_version: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_API_VERSION", "2025-05-01-preview")
+    )
+    # Azure Blob Storage for uploading contract files before analysis
+    contract_blob_connection_string: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_BLOB_CONNECTION_STRING", "")
+    )
+    contract_blob_container_name: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_BLOB_CONTAINER_NAME", "cu-files")
+    )
+    contract_blob_sas_expiration_hours: int = field(
+        default_factory=lambda: int(os.getenv("CONTRACT_BLOB_SAS_EXPIRATION_HOURS", "24"))
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(

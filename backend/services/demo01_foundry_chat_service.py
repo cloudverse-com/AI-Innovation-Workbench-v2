@@ -6,7 +6,7 @@ Streams tokens using FoundryChatClient + Agent.
 
 from agent_framework import Agent
 from agent_framework.foundry import FoundryChatClient
-from azure.identity import AzureCliCredential
+from azure.identity import DefaultAzureCredential
 
 from backend.config import settings
 
@@ -15,7 +15,7 @@ async def stream(message: str, model: str, system_prompt: str):
     client = FoundryChatClient(
         project_endpoint=settings.foundry_project_endpoint,
         model=model,
-        credential=AzureCliCredential(),
+        credential=DefaultAzureCredential(),
     )
     agent = Agent(client=client, name="WorkbenchAgent", instructions=system_prompt)
 

@@ -23,3 +23,6 @@ Pillow>=11.0.0               # Image processing for vision mode
 
 # ── HTTP Client ────────────────────────────────────────────────────────────
 httpx>=0.28.0                # Async HTTP client (used internally by Azure SDK)
+
+# ── Azure Blob Storage (Demo 07 — Contract Comparison) ─────────────────────
+azure-storage-blob>=12.0.0   # Upload contract PDFs and generate SAS URLs

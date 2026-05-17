@@ -57,6 +57,15 @@ const DEMOS: Demo[] = [
     supportsFileUpload: true,
     inputPlaceholder: 'Upload a medical report PDF to analyze...',
   },
+  {
+    id: 'demo07', routeId: 'demo-07',
+    title: 'Document Comparison', subtitle: 'Contract Analysis + Blob Storage',
+    category: 'Advanced Features', icon: '📋',
+    description: 'Upload a contract PDF to Azure Blob Storage, then run Azure Content Understanding to identify deviations, missing terms, and risk areas against a reference analyzer.',
+    highlights: ['Blob Storage upload + SAS URL', 'Content Understanding analyze API', 'Clause-level diff detection', 'Risk & deviation report'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Upload a contract PDF to analyze...',
+  },
 ]
 
 const CATEGORY_ORDER: DemoCategory[] = [
