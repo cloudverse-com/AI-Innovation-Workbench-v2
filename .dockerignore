@@ -1,0 +1,10 @@
+.git
+.env
+backend/.env
+*.pyc
+__pycache__
+frontend/node_modules
+frontend/dist
+.vscode
+*.md
+*.docx

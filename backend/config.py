@@ -65,6 +65,40 @@ class Settings:
         )
     )
 
+    # --- Azure Content Understanding (Demo 06) ---
+    # Base endpoint of the Azure AI resource (without /api/projects/...)
+    # e.g. https://cv-foundry-eastus2.services.ai.azure.com/
+    content_understanding_endpoint: str = field(
+        default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ENDPOINT", "")
+    )
+
+    # The analyzer ID created in your Content Understanding resource
+    content_understanding_analyzer_id: str = field(
+        default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ANALYZER_ID", "patient_medical_report")
+    )
+
+    # --- Contract Comparison (Demo 07) ---
+    # Azure Content Understanding endpoint and credentials for contract analysis
+    contract_cu_base_url: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_BASE_URL", "")
+    )
+    contract_cu_subscription_key: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_SUBSCRIPTION_KEY", "")
+    )
+    contract_cu_api_version: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_CU_API_VERSION", "2025-05-01-preview")
+    )
+    # Azure Blob Storage for uploading contract files before analysis
+    contract_blob_connection_string: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_BLOB_CONNECTION_STRING", "")
+    )
+    contract_blob_container_name: str = field(
+        default_factory=lambda: os.getenv("CONTRACT_BLOB_CONTAINER_NAME", "cu-files")
+    )
+    contract_blob_sas_expiration_hours: int = field(
+        default_factory=lambda: int(os.getenv("CONTRACT_BLOB_SAS_EXPIRATION_HOURS", "24"))
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(

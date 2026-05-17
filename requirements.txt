@@ -1,5 +1,5 @@
 # AI Innovation Workbench — Python Dependencies
-# Install with: pip install -r backend/requirements.txt
+# Install with: pip install -r requirements.txt
 
 # ── Web Framework ──────────────────────────────────────────────────────────
 fastapi>=0.115.0              # Modern async web framework
@@ -20,6 +20,9 @@ pydantic>=2.0.0              # Request/response validation, JSON schema generati
 # ── Document Processing (Demo 01 — Text Extraction Mode) ───────────────────
 docling>=2.15.0              # PDF → Markdown conversion (IBM Docling)
 Pillow>=11.0.0               # Image processing for vision mode
+
+# ── Azure Content Understanding (Demo 06) ──────────────────────────────────
+azure-ai-contentunderstanding>=1.1.0  # Medical report analysis via Content Understanding
 
 # ── HTTP Client ────────────────────────────────────────────────────────────
 httpx>=0.28.0                # Async HTTP client (used internally by Azure SDK)

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from azure.ai.contentunderstanding.models import AnalysisInput; import inspect; print\\(inspect.getsource\\(AnalysisInput\\)\\)\")",
+      "Bash(docker build *)",
+      "Bash(npm run *)",
+      "Bash(python -c \"from backend.routes.api import router; print\\('imports OK'\\)\")"
+    ]
+  }
+}

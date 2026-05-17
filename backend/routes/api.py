@@ -7,12 +7,17 @@ Business logic lives in backend/services/.
 
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from backend.config import settings
-from backend.services import demo01_foundry_chat_service, demo02_foundry_agent_service
+from backend.services import (
+    demo01_foundry_chat_service,
+    demo02_foundry_agent_service,
+    demo06_content_understanding_service,
+    demo07_contract_comparison_service,
+)
 
 router = APIRouter()
 
@@ -96,3 +101,88 @@ async def demo05_chat_stream():
 
     return StreamingResponse(_stub(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache"})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 06: Medical Report Analysis — Azure Content Understanding
+# ─────────────────────────────────────────────────────────────────────────────
+
+_MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
+
+
+@router.get("/api/demo-06/config", tags=["Demo 06"])
+async def demo06_config():
+    """Return the server-side default analyzer ID so the frontend can pre-select it."""
+    return {"default_analyzer_id": settings.content_understanding_analyzer_id}
+
+
+@router.post("/api/demo-06/analyze", tags=["Demo 06"])
+async def demo06_analyze(
+    file: UploadFile = File(...),
+    analyzer_id: str = Form(...),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    try:
+        result = await demo06_content_understanding_service.analyze(
+            file_bytes, file.filename or "document.pdf", analyzer_id
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return {"result": result, "filename": file.filename, "analyzer_id": analyzer_id}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 07: Contract Comparison — Blob upload + Azure Content Understanding
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/api/demo-07/config", tags=["Demo 07"])
+async def demo07_config():
+    """Return the list of available contract analyzers."""
+    return {"analyzers": demo07_contract_comparison_service.ANALYZERS}
+
+
+@router.post("/api/demo-07/upload-and-start-analyze", tags=["Demo 07"])
+async def demo07_upload_and_start_analyze(
+    file: UploadFile = File(...),
+    analyzer_name: str = Form(...),
+):
+    """
+    Upload contract PDF to Azure Blob Storage, then start a Content Understanding
+    analysis job. Returns the initial response which includes a resultId for polling.
+    """
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    if not analyzer_name:
+        raise HTTPException(status_code=400, detail="analyzer_name is required.")
+
+    try:
+        result = await demo07_contract_comparison_service.upload_and_start_analyze(
+            file_bytes, file.filename or "contract.pdf", analyzer_name
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return result
+
+
+@router.get("/api/demo-07/result/{result_id}", tags=["Demo 07"])
+async def demo07_get_result(result_id: str):
+    """Poll for the result of a previously started contract analysis."""
+    try:
+        result = await demo07_contract_comparison_service.get_analysis_result(result_id)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return result
