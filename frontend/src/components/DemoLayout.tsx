@@ -35,15 +35,6 @@ export function DemoLayout({
     sendMessage(message)
   }
 
-  // Demo 07 gets its own full-width layout — no settings bar or code panel toggle
-  if (demo.id === 'demo07') {
-    return (
-      <div className="flex flex-col h-full overflow-hidden">
-        <ContractComparisonPanel demo={demo} />
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Top bar: settings + panel toggle */}

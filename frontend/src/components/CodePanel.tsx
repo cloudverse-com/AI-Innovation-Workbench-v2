@@ -15,6 +15,7 @@ const FILE_TABS: Record<string, Array<{ label: string; fileId: string }>> = {
   demo03: [{ label: 'api.py', fileId: 'demo03' }],
   demo04: [{ label: 'api.py', fileId: 'demo04' }],
   demo05: [{ label: 'api.py', fileId: 'demo05' }],
+  demo07: [{ label: 'demo07_contract_comparison_service.py', fileId: 'demo07' }],
 }
 
 export function CodePanel({ demoId }: CodePanelProps) {

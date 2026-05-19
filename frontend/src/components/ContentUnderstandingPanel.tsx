@@ -30,15 +30,6 @@ interface AnalysisResult {
   analyzer_id?: string
 }
 
-// Well-known Azure Content Understanding analyzer IDs
-const PRESET_ANALYZERS = [
-  { id: 'prebuilt-read',                   label: 'prebuilt-read — General document reading' },
-  { id: 'prebuilt-layout',                 label: 'prebuilt-layout — Layout & structure analysis' },
-  { id: 'prebuilt-invoice',                label: 'prebuilt-invoice — Invoice extraction' },
-  { id: 'prebuilt-receipt',                label: 'prebuilt-receipt — Receipt extraction' },
-  { id: 'prebuilt-healthInsuranceCard.us', label: 'prebuilt-healthInsuranceCard.us — US health insurance cards' },
-  { id: 'prebuilt-idDocument',             label: 'prebuilt-idDocument — Identity documents' },
-]
 
 function FieldsTable({ fields }: { fields: Record<string, AnalysisField> }) {
   const entries = Object.entries(fields).filter(([, v]) => v != null)
@@ -147,6 +138,7 @@ export function ContentUnderstandingPanel({ demo }: ContentUnderstandingPanelPro
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const [analyzerIds, setAnalyzerIds] = useState<string[]>([])
   const [analyzerId, setAnalyzerId] = useState('')
   const [customAnalyzer, setCustomAnalyzer] = useState('')
   const [isCustom, setIsCustom] = useState(false)
@@ -156,15 +148,10 @@ export function ContentUnderstandingPanel({ demo }: ContentUnderstandingPanelPro
   useEffect(() => {
     fetch('/api/demo-06/config')
       .then(r => r.json())
-      .then((cfg: { default_analyzer_id: string }) => {
-        const def = cfg.default_analyzer_id
-        if (!def) return
-        const inPresets = PRESET_ANALYZERS.some(p => p.id === def)
-        if (!inPresets) {
-          setIsCustom(true)
-          setCustomAnalyzer(def)
-        }
-        setAnalyzerId(def)
+      .then((cfg: { analyzer_ids: string[]; default_analyzer_id: string }) => {
+        const ids = cfg.analyzer_ids ?? []
+        setAnalyzerIds(ids)
+        if (cfg.default_analyzer_id) setAnalyzerId(cfg.default_analyzer_id)
       })
       .catch(() => {})
   }, [])
@@ -245,11 +232,8 @@ export function ContentUnderstandingPanel({ demo }: ContentUnderstandingPanelPro
             className="w-full rounded-lg border border-ms-gray-300 px-3 py-2 text-sm text-ms-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-ms-blue focus:border-transparent disabled:opacity-50"
           >
             <option value="" disabled>Select an analyzer…</option>
-            {analyzerId && !PRESET_ANALYZERS.some(p => p.id === analyzerId) && !isCustom && (
-              <option value={analyzerId}>{analyzerId} (server default)</option>
-            )}
-            {PRESET_ANALYZERS.map(p => (
-              <option key={p.id} value={p.id}>{p.label}</option>
+            {analyzerIds.map(id => (
+              <option key={id} value={id}>{id}</option>
             ))}
             <option value="__custom__">Custom analyzer ID…</option>
           </select>
