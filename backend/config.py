@@ -72,9 +72,11 @@ class Settings:
         default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ENDPOINT", "")
     )
 
-    # The analyzer ID created in your Content Understanding resource
-    content_understanding_analyzer_id: str = field(
-        default_factory=lambda: os.getenv("CONTENT_UNDERSTANDING_ANALYZER_ID", "patient_medical_report")
+    # Comma-separated list of analyzer IDs created in your Content Understanding resource
+    content_understanding_analyzer_ids: list[str] = field(
+        default_factory=lambda: [
+            a.strip() for a in os.getenv("CONTENT_UNDERSTANDING_ANALYZER_IDS", "patient_medical_report").split(",") if a.strip()
+        ]
     )
 
     # --- Contract Comparison (Demo 07) ---

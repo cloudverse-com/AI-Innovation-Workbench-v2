@@ -112,8 +112,9 @@ _MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
 
 @router.get("/api/demo-06/config", tags=["Demo 06"])
 async def demo06_config():
-    """Return the server-side default analyzer ID so the frontend can pre-select it."""
-    return {"default_analyzer_id": settings.content_understanding_analyzer_id}
+    """Return the list of analyzer IDs configured in CONTENT_UNDERSTANDING_ANALYZER_IDS."""
+    ids = settings.content_understanding_analyzer_ids
+    return {"analyzer_ids": ids, "default_analyzer_id": ids[0] if ids else ""}
 
 
 @router.post("/api/demo-06/analyze", tags=["Demo 06"])

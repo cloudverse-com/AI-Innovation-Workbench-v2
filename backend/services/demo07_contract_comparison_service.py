@@ -2,15 +2,17 @@
 Demo 07 — Contract Comparison
 ==============================
 Uploads a contract PDF to Azure Blob Storage (generating a SAS URL),
-then submits it to Azure Content Understanding for analysis.
-Mirrors the C# AzureContentUnderstandingController.UploadAndStartAnalyze flow.
+then submits it to Azure Content Understanding for analysis using the
+azure-ai-contentunderstanding SDK.
 """
 
 import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone
 
-import httpx
+from azure.ai.contentunderstanding.aio import ContentUnderstandingClient
+from azure.ai.contentunderstanding.models import AnalysisInput
+from azure.core.credentials import AzureKeyCredential
 from azure.storage.blob import BlobSasPermissions, BlobServiceClient, generate_blob_sas
 
 from backend.config import settings
@@ -22,30 +24,36 @@ ANALYZERS = [
 ]
 
 
+def _make_cu_client() -> ContentUnderstandingClient:
+    return ContentUnderstandingClient(
+        endpoint=settings.contract_cu_base_url,
+        credential=AzureKeyCredential(settings.contract_cu_subscription_key),
+        api_version=settings.contract_cu_api_version,
+    )
+
+
 async def upload_and_start_analyze(file_bytes: bytes, filename: str, analyzer_name: str) -> dict:
     """
     1. Upload file to Azure Blob Storage and generate a time-limited SAS URL.
-    2. POST the SAS URL to Azure Content Understanding to start analysis.
-    3. Return the initial response (contains resultId for polling).
+    2. Start a Content Understanding analysis via the SDK.
+    3. Return a dict with resultId for polling.
     """
     sas_url = await asyncio.get_event_loop().run_in_executor(
         None, _upload_and_get_sas, file_bytes, filename
     )
-    return await _start_analyze(sas_url, analyzer_name)
+    async with _make_cu_client() as client:
+        poller = await client.begin_analyze(
+            analyzer_name,
+            inputs=[AnalysisInput(url=sas_url)],
+        )
+        return {"resultId": poller.operation_id}
 
 
 async def get_analysis_result(result_id: str) -> dict:
     """Fetch the current status/result of a previously started analysis."""
-    endpoint = (
-        f"{settings.contract_cu_base_url.rstrip('/')}"
-        f"/contentunderstanding/analyzerResults/{result_id}"
-        f"?api-version={settings.contract_cu_api_version}"
-    )
-    headers = {"Ocp-Apim-Subscription-Key": settings.contract_cu_subscription_key}
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(endpoint, headers=headers)
-        resp.raise_for_status()
-        return resp.json()
+    async with _make_cu_client() as client:
+        result = await client._get_result(result_id)
+        return dict(result)
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -87,19 +95,3 @@ def _upload_and_get_sas(file_bytes: bytes, filename: str) -> str:
     )
     return f"{blob_url}?{sas_token}"
 
-
-async def _start_analyze(sas_url: str, analyzer_name: str) -> dict:
-    """POST to Content Understanding analyze endpoint and return the raw response."""
-    endpoint = (
-        f"{settings.contract_cu_base_url.rstrip('/')}"
-        f"/contentunderstanding/analyzers/{analyzer_name}:analyze"
-        f"?api-version={settings.contract_cu_api_version}"
-    )
-    headers = {
-        "Ocp-Apim-Subscription-Key": settings.contract_cu_subscription_key,
-        "Content-Type": "application/json",
-    }
-    async with httpx.AsyncClient(timeout=60) as client:
-        resp = await client.post(endpoint, json={"url": sas_url}, headers=headers)
-        resp.raise_for_status()
-        return resp.json()
