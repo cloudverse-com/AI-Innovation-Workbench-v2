@@ -4,6 +4,8 @@ import { ChatPanel } from './ChatPanel'
 import { CodePanel } from './CodePanel'
 import { ContentUnderstandingPanel } from './ContentUnderstandingPanel'
 import { ContractComparisonPanel } from './ContractComparisonPanel'
+import { EntityExtractorPanel } from './EntityExtractorPanel'
+import { DocumentAgentPanel } from './DocumentAgentPanel'
 import { SettingsPanel } from './SettingsPanel'
 import { useChat } from '../hooks/useChat'
 
@@ -82,6 +84,10 @@ export function DemoLayout({
               <ContentUnderstandingPanel demo={demo} />
             ) : demo.id === 'demo07' ? (
               <ContractComparisonPanel demo={demo} />
+            ) : demo.id === 'demo08' ? (
+              <EntityExtractorPanel demo={demo} />
+            ) : demo.id === 'demo09' ? (
+              <DocumentAgentPanel demo={demo} />
             ) : (
               <ChatPanel
                 demo={demo}

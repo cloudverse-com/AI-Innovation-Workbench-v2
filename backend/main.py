@@ -100,6 +100,8 @@ DEMO_CODE_FILES = {
     "demo05": "backend/routes/api.py",
     "demo06": "backend/services/demo06_content_understanding_service.py",
     "demo07": "backend/services/demo07_contract_comparison_service.py",
+    "demo08": "backend/services/demo08_entity_extractor_service.py",
+    "demo09": "backend/services/demo09_document_agent_service.py",
     "config": "backend/config.py",
 }
 
