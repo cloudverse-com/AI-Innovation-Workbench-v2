@@ -7,7 +7,7 @@ All demos import create_agent() from here.
 
 from agent_framework import Agent
 from agent_framework.foundry import FoundryChatClient
-from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential
 
 from backend.config import settings
 
@@ -28,16 +28,11 @@ def create_agent(
             "FOUNDRY_PROJECT_ENDPOINT is not set. "
             "Copy backend/.env.template to backend/.env and fill in your values."
         )
-    if not settings.foundry_api_key:
-        raise ValueError(
-            "FOUNDRY_API_KEY is not set. "
-            "Copy backend/.env.template to backend/.env and fill in your values."
-        )
 
     client = FoundryChatClient(
         project_endpoint=settings.foundry_project_endpoint,
         model=model or settings.default_model,
-        credential=AzureKeyCredential(settings.foundry_api_key),
+        credential=DefaultAzureCredential(),
     )
 
     return Agent(

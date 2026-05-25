@@ -17,6 +17,8 @@ from backend.services import (
     demo02_foundry_agent_service,
     demo06_content_understanding_service,
     demo07_contract_comparison_service,
+    demo08_entity_extractor_service,
+    demo09_document_agent_service,
 )
 
 router = APIRouter()
@@ -187,3 +189,80 @@ async def demo07_get_result(result_id: str):
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 08: PDF Entity Extractor — Docling + MS Agent (LLM only, no Content Understanding)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/api/demo-08/extract", tags=["Demo 08"])
+async def demo08_extract(
+    file: UploadFile = File(...),
+    model: str = Form(default=""),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    use_model = model.strip() or settings.default_model
+    filename = file.filename or "document.pdf"
+
+    async def _stream():
+        try:
+            async for event in demo08_entity_extractor_service.stream_extract_entities(
+                file_bytes, filename, use_model
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 09: Document Q&A Agent — PDF attachment + hosted FoundryAgent (streaming)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/api/demo-09/chat", tags=["Demo 09"])
+async def demo09_chat(
+    file: UploadFile = File(...),
+    question: str = Form(...),
+    agent_name: str = Form(default=""),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    if not question.strip():
+        raise HTTPException(status_code=400, detail="A question is required.")
+
+    use_agent = agent_name.strip() or settings.foundry_agent_name
+    if not use_agent:
+        raise HTTPException(status_code=400, detail="No agent name configured.")
+
+    filename = file.filename or "document.pdf"
+
+    async def _stream():
+        try:
+            async for event in demo09_document_agent_service.stream_document_agent(
+                file_bytes, filename, question, use_agent
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

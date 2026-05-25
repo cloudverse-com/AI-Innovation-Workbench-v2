@@ -66,6 +66,24 @@ const DEMOS: Demo[] = [
     supportsFileUpload: true,
     inputPlaceholder: 'Upload a contract PDF to analyze...',
   },
+  {
+    id: 'demo08', routeId: 'demo-08',
+    title: 'PDF Entity Extractor', subtitle: 'Docling + MS Agent (LLM only)',
+    category: 'Advanced Features', icon: '🏷️',
+    description: 'Upload any PDF — Docling converts it to Markdown, then an MS Agent calls the LLM to extract named entities: people, organizations, locations, dates, amounts, and key terms. No Azure Content Understanding required.',
+    highlights: ['Docling PDF → Markdown', 'Agent + FoundryChatClient', 'LLM-based NER', 'Six entity categories'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Upload a PDF to extract entities...',
+  },
+  {
+    id: 'demo09', routeId: 'demo-09',
+    title: 'Document Q&A Agent', subtitle: 'Hosted Agent + PDF Attachment',
+    category: 'Advanced Features', icon: '📎',
+    description: 'Attach a PDF and ask a question. The document text is extracted (pymupdf) and sent together with your question to a hosted Azure AI Foundry agent, which streams its answer back.',
+    highlights: ['PDF upload (drag & drop)', 'PDF text extraction', 'Hosted FoundryAgent by name', 'Streaming SSE response'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Attach a PDF and ask a question...',
+  },
 ]
 
 const CATEGORY_ORDER: DemoCategory[] = [

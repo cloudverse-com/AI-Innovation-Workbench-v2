@@ -11,7 +11,8 @@ RUN npm run build
 FROM python:3.11-slim
 
 # Install Azure CLI so AzureCliCredential works inside the container
-RUN apt-get update && apt-get install -y curl ca-certificates && \
+RUN apt-get update && apt-get install -y curl ca-certificates \
+        libxcb1 libgl1 libglib2.0-0 libsm6 libxext6 && \
     curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
