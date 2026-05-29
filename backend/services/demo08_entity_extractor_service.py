@@ -1,7 +1,7 @@
 """
 Demo 08: PDF Entity Extractor
 ==============================
-Uses Docling to parse a PDF into Markdown, then passes the text to an
+Uses PyMuPDF (fitz) to extract text from a PDF, then passes the text to an
 MS Agent (Agent + FoundryChatClient) for named-entity extraction.
 No Azure Content Understanding is used — just the LLM.
 """

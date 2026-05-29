@@ -102,6 +102,8 @@ DEMO_CODE_FILES = {
     "demo07": "backend/services/demo07_contract_comparison_service.py",
     "demo08": "backend/services/demo08_entity_extractor_service.py",
     "demo09": "backend/services/demo09_document_agent_service.py",
+    "demo10": "backend/services/demo10_liteparse_service.py",
+    "demo11": "backend/services/demo11_inmemory_rag_service.py",
     "config": "backend/config.py",
 }
 
