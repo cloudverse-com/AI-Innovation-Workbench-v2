@@ -6,6 +6,8 @@ import { ContentUnderstandingPanel } from './ContentUnderstandingPanel'
 import { ContractComparisonPanel } from './ContractComparisonPanel'
 import { EntityExtractorPanel } from './EntityExtractorPanel'
 import { DocumentAgentPanel } from './DocumentAgentPanel'
+import { DocumentLayoutPanel } from './DocumentLayoutPanel'
+import { InMemoryRAGPanel } from './InMemoryRAGPanel'
 import { SettingsPanel } from './SettingsPanel'
 import { useChat } from '../hooks/useChat'
 
@@ -88,6 +90,10 @@ export function DemoLayout({
               <EntityExtractorPanel demo={demo} />
             ) : demo.id === 'demo09' ? (
               <DocumentAgentPanel demo={demo} />
+            ) : demo.id === 'demo10' ? (
+              <DocumentLayoutPanel demo={demo} />
+            ) : demo.id === 'demo11' ? (
+              <InMemoryRAGPanel demo={demo} />
             ) : (
               <ChatPanel
                 demo={demo}

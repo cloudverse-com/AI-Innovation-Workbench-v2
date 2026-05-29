@@ -17,10 +17,10 @@ python-dotenv>=1.0.1         # Loads .env file into environment variables
 # ── Data Validation ────────────────────────────────────────────────────────
 pydantic>=2.0.0              # Request/response validation, JSON schema generation
 
-# ── Document Processing (Demo 01 — Text Extraction Mode) ───────────────────
-docling>=2.15.0              # PDF → Markdown conversion (IBM Docling)
+# ── Document Processing ────────────────────────────────────────────────────
 Pillow>=11.0.0               # Image processing for vision mode
 pymupdf>=1.24.0              # Fast PDF text extraction for Demo 08 (no ML models)
+liteparse>=2.0.0             # Rust-powered local spatial PDF parser for Demo 10
 
 # ── Azure Content Understanding (Demo 06) ──────────────────────────────────
 azure-ai-contentunderstanding>=1.1.0  # Medical report analysis via Content Understanding

@@ -19,6 +19,8 @@ from backend.services import (
     demo07_contract_comparison_service,
     demo08_entity_extractor_service,
     demo09_document_agent_service,
+    demo10_liteparse_service,
+    demo11_inmemory_rag_service,
 )
 
 router = APIRouter()
@@ -256,6 +258,103 @@ async def demo09_chat(
         try:
             async for event in demo09_document_agent_service.stream_document_agent(
                 file_bytes, filename, question, use_agent
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 10: Document Layout Parser — LiteParse (local, Rust-powered, spatial)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/api/demo-10/parse", tags=["Demo 10"])
+async def demo10_parse(
+    file: UploadFile = File(...),
+    model: str = Form(default=""),
+    summarize: str = Form(default="false"),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    use_model = model.strip() or settings.default_model
+    filename = file.filename or "document.pdf"
+    do_summarize = summarize.strip().lower() == "true"
+
+    async def _stream():
+        try:
+            async for event in demo10_liteparse_service.stream_parse(
+                file_bytes, filename, use_model, do_summarize
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 11: In-Memory PDF Q&A — Chunked RAG with MS Agent Framework
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/api/demo-11/index", tags=["Demo 11"])
+async def demo11_index(
+    file: UploadFile = File(...),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    filename = file.filename or "document.pdf"
+
+    async def _stream():
+        try:
+            async for event in demo11_inmemory_rag_service.stream_index(file_bytes, filename):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/api/demo-11/ask", tags=["Demo 11"])
+async def demo11_ask(
+    session_id: str = Form(...),
+    question: str = Form(...),
+    model: str = Form(default=""),
+):
+    if not session_id.strip():
+        raise HTTPException(status_code=400, detail="session_id is required.")
+    if not question.strip():
+        raise HTTPException(status_code=400, detail="A question is required.")
+
+    use_model = model.strip() or settings.default_model
+
+    async def _stream():
+        try:
+            async for event in demo11_inmemory_rag_service.stream_ask(
+                session_id, question, use_model
             ):
                 yield f"data: {json.dumps(event)}\n\n"
         except Exception as exc:

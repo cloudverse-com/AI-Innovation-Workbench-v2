@@ -41,6 +41,7 @@ export interface Demo {
   supportsSession?: boolean;
   inputLabel?: string;     // Custom label for the input box
   inputPlaceholder?: string;
+  disabled?: boolean;      // Hides from selection and shows "coming soon" badge
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────

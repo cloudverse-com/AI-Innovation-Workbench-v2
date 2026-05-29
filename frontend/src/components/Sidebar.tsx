@@ -8,7 +8,7 @@ const DEMOS: Demo[] = [
     title: 'Chat Completion', subtitle: 'FoundryChatClient + Streaming',
     category: 'Core Capabilities', icon: '💬',
     description: 'Basic chat with streaming tokens, conversation history, and optional file uploads (PDF/image).',
-    highlights: ['Streaming SSE responses', 'PDF text extraction (Docling)', 'Vision mode (GPT-4.1)', 'Conversation history'],
+    highlights: ['Streaming SSE responses', 'PDF text extraction (PyMuPDF)', 'Vision mode (GPT-4.1)', 'Conversation history'],
     supportsFileUpload: true, supportsStreaming: true,
     inputPlaceholder: 'Ask anything, or attach a PDF/image above...',
   },
@@ -28,6 +28,7 @@ const DEMOS: Demo[] = [
     description: 'The @tool decorator registers Python functions as AI-callable tools. See the full tool-calling loop.',
     highlights: ['@tool decorator', 'Auto JSON schema', 'Multi-round tool loop', 'Tool registry'],
     inputPlaceholder: 'Try: "What\'s the weather in Tokyo?" or "Calculate 2^10"',
+    disabled: true,
   },
   {
     id: 'demo04', routeId: 'demo-04',
@@ -37,6 +38,7 @@ const DEMOS: Demo[] = [
     highlights: ['AgentSession dataclass', 'Server-side history', 'Session registry', 'Session lifecycle'],
     supportsSession: true, supportsStreaming: true,
     inputPlaceholder: 'Your session persists across messages...',
+    disabled: true,
   },
   // ── Advanced Features ────────────────────────────────────────────────────
   {
@@ -68,10 +70,10 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo08', routeId: 'demo-08',
-    title: 'PDF Entity Extractor', subtitle: 'Docling + MS Agent (LLM only)',
+    title: 'PDF Entity Extractor', subtitle: 'PyMuPDF + MS Agent (LLM only)',
     category: 'Advanced Features', icon: '🏷️',
-    description: 'Upload any PDF — Docling converts it to Markdown, then an MS Agent calls the LLM to extract named entities: people, organizations, locations, dates, amounts, and key terms. No Azure Content Understanding required.',
-    highlights: ['Docling PDF → Markdown', 'Agent + FoundryChatClient', 'LLM-based NER', 'Six entity categories'],
+    description: 'Upload any PDF — PyMuPDF extracts the text, then an MS Agent calls the LLM to extract named entities: people, organizations, locations, dates, amounts, and key terms. No Azure Content Understanding required.',
+    highlights: ['PyMuPDF text extraction', 'Agent + FoundryChatClient', 'LLM-based NER', 'Six entity categories'],
     supportsFileUpload: true,
     inputPlaceholder: 'Upload a PDF to extract entities...',
   },
@@ -83,6 +85,24 @@ const DEMOS: Demo[] = [
     highlights: ['PDF upload (drag & drop)', 'PDF text extraction', 'Hosted FoundryAgent by name', 'Streaming SSE response'],
     supportsFileUpload: true,
     inputPlaceholder: 'Attach a PDF and ask a question...',
+  },
+  {
+    id: 'demo10', routeId: 'demo-10',
+    title: 'Document Layout Parser', subtitle: 'LiteParse · Spatial + Bounding Boxes',
+    category: 'Advanced Features', icon: '🗺️',
+    description: 'Upload a PDF and parse it locally with LiteParse — a Rust-powered, offline spatial parser. See page-by-page text with bounding box coordinates for every block, plus an optional AI summary.',
+    highlights: ['LiteParse (Rust, local, no cloud)', 'Spatial bounding boxes', 'Per-page structured text', 'Optional AI summary'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Upload a PDF to parse its layout...',
+  },
+  {
+    id: 'demo11', routeId: 'demo-11',
+    title: 'In-Memory PDF Q&A', subtitle: 'Chunked RAG · No Vector DB',
+    category: 'Advanced Features', icon: '🧩',
+    description: 'Upload a PDF — it is chunked and stored in an in-memory session. Ask multiple questions and get answers streamed back via an MS Agent that retrieves only the relevant chunks per question.',
+    highlights: ['In-memory chunk store', 'Keyword-scored retrieval', 'Multi-turn Q&A', 'No external vector DB'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Upload a PDF, then ask questions about it...',
   },
 ]
 
@@ -138,12 +158,15 @@ export function Sidebar({ selectedDemo, onSelectDemo, isCollapsed, onToggleColla
         {DEMOS.map(demo => (
           <button
             key={demo.id}
-            onClick={() => onSelectDemo(demo)}
-            title={demo.title}
+            onClick={() => !demo.disabled && onSelectDemo(demo)}
+            disabled={demo.disabled}
+            title={demo.disabled ? `${demo.title} — coming soon` : demo.title}
             className={`w-9 h-9 rounded-lg flex items-center justify-center text-base transition-all ${
-              selectedDemo.id === demo.id
-                ? 'bg-ms-blue text-white'
-                : 'text-ms-gray-400 hover:bg-ms-gray-800 hover:text-white'
+              demo.disabled
+                ? 'opacity-40 cursor-not-allowed text-ms-gray-600'
+                : selectedDemo.id === demo.id
+                  ? 'bg-ms-blue text-white'
+                  : 'text-ms-gray-400 hover:bg-ms-gray-800 hover:text-white'
             }`}
           >
             {demo.icon}
@@ -199,21 +222,25 @@ export function Sidebar({ selectedDemo, onSelectDemo, isCollapsed, onToggleColla
                 {demos.map(demo => (
                   <button
                     key={demo.id}
-                    onClick={() => onSelectDemo(demo)}
+                    onClick={() => !demo.disabled && onSelectDemo(demo)}
+                    disabled={demo.disabled}
+                    title={demo.disabled ? `${demo.title} — coming soon` : demo.title}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 ${
-                      selectedDemo.id === demo.id
-                        ? 'bg-ms-blue text-white'
-                        : 'text-ms-gray-300 hover:bg-ms-gray-800 hover:text-white'
+                      demo.disabled
+                        ? 'opacity-40 cursor-not-allowed text-ms-gray-500'
+                        : selectedDemo.id === demo.id
+                          ? 'bg-ms-blue text-white'
+                          : 'text-ms-gray-300 hover:bg-ms-gray-800 hover:text-white'
                     }`}
                   >
                     <span className="text-base flex-shrink-0">{demo.icon}</span>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium truncate">{demo.title}</div>
-                      <div className={`text-xs truncate ${selectedDemo.id === demo.id ? 'text-blue-200' : 'text-ms-gray-500'}`}>
-                        {demo.subtitle}
+                      <div className={`text-xs truncate ${selectedDemo.id === demo.id && !demo.disabled ? 'text-blue-200' : 'text-ms-gray-500'}`}>
+                        {demo.disabled ? 'Coming soon' : demo.subtitle}
                       </div>
                     </div>
-                    <span className={`ml-auto text-xs flex-shrink-0 font-mono ${selectedDemo.id === demo.id ? 'text-blue-200' : 'text-ms-gray-600'}`}>
+                    <span className={`ml-auto text-xs flex-shrink-0 font-mono ${selectedDemo.id === demo.id && !demo.disabled ? 'text-blue-200' : 'text-ms-gray-600'}`}>
                       {demo.id.replace('demo', '')}
                     </span>
                   </button>

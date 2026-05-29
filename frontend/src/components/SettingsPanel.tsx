@@ -73,7 +73,7 @@ export function SettingsPanel({
                 onChange={e => update({ processingMode: e.target.value as 'text' | 'vision' })}
                 className="settings-select"
               >
-                <option value="text">Text Extraction (Docling)</option>
+                <option value="text">Text Extraction (PyMuPDF)</option>
                 <option value="vision">Vision (GPT-4.1 Vision)</option>
               </select>
             </div>
