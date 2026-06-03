@@ -11,6 +11,15 @@ aiofiles>=24.1.0             # Async file reading for static file serving
 agent-framework              # Agent + FoundryChatClient — core agent SDK
 azure-identity>=1.19.0       # Credential types (AzureKeyCredential, AzureCliCredential)
 
+# ── Semantic Kernel (Demo 11) — installed SEPARATELY, NOT in this file ──────
+# semantic-kernel pins azure-ai-projects<2.0, but agent-framework-foundry needs >=2.0.
+# They cannot be resolved together by a single `pip install -r` (ResolutionImpossible).
+# Install in ordered steps AFTER this file, then force azure-ai-projects back to 2.x:
+#   pip install -r requirements.txt
+#   pip install "semantic-kernel>=1.42.0"
+#   pip install "azure-ai-projects>=2.0.0,<3.0"
+# The Dockerfile already runs these in order.
+
 # ── Configuration ──────────────────────────────────────────────────────────
 python-dotenv>=1.0.1         # Loads .env file into environment variables
 

@@ -19,7 +19,14 @@ RUN apt-get update && apt-get install -y curl ca-certificates \
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Install in ordered steps. semantic-kernel and agent-framework-foundry pin
+# incompatible azure-ai-projects versions (<2.0 vs >=2.0), so they cannot be
+# resolved together in one pass. Install the base, let SK pull its deps, then
+# force azure-ai-projects back to the 2.x line that Foundry requires. SK's
+# in-memory vector store + embeddings do not use azure-ai-projects at runtime.
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir "semantic-kernel>=1.42.0" && \
+    pip install --no-cache-dir "azure-ai-projects>=2.0.0,<3.0"
 
 COPY backend/ ./backend/
 

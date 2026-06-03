@@ -101,6 +101,28 @@ class Settings:
         default_factory=lambda: int(os.getenv("CONTRACT_BLOB_SAS_EXPIRATION_HOURS", "24"))
     )
 
+    # --- Azure OpenAI Embeddings (Demo 11 — In-Memory Vector Store) ---
+    # Azure OpenAI resource endpoint, e.g. https://my-aoai.openai.azure.com/
+    azure_openai_endpoint: str = field(
+        default_factory=lambda: os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    )
+    # API key for the Azure OpenAI resource (used by Semantic Kernel's AzureTextEmbedding)
+    azure_openai_api_key: str = field(
+        default_factory=lambda: os.getenv("AZURE_OPENAI_API_KEY", "")
+    )
+    # Deployment name of your embedding model (e.g. text-embedding-3-small)
+    azure_openai_embedding_deployment: str = field(
+        default_factory=lambda: os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-small")
+    )
+    # Embedding vector dimensions (1536 for text-embedding-3-small / ada-002)
+    azure_openai_embedding_dimensions: int = field(
+        default_factory=lambda: int(os.getenv("AZURE_OPENAI_EMBEDDING_DIMENSIONS", "1536"))
+    )
+    # Azure OpenAI REST API version
+    azure_openai_api_version: str = field(
+        default_factory=lambda: os.getenv("AZURE_OPENAI_API_VERSION", "2024-10-21")
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(

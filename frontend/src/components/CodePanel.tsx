@@ -18,6 +18,8 @@ const FILE_TABS: Record<string, Array<{ label: string; fileId: string }>> = {
   demo07: [{ label: 'demo07_contract_comparison_service.py', fileId: 'demo07' }],
   demo08: [{ label: 'demo08_entity_extractor_service.py', fileId: 'demo08' }],
   demo09: [{ label: 'demo09_document_agent_service.py', fileId: 'demo09' }],
+  demo10a: [{ label: 'demo10_liteparse_service.py', fileId: 'demo10a' }],
+  demo10b: [{ label: 'demo10b_liteparse_agent_service.py', fileId: 'demo10b' }],
 }
 
 export function CodePanel({ demoId }: CodePanelProps) {

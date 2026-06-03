@@ -20,6 +20,7 @@ from backend.services import (
     demo08_entity_extractor_service,
     demo09_document_agent_service,
     demo10_liteparse_service,
+    demo10b_liteparse_agent_service,
     demo11_inmemory_rag_service,
 )
 
@@ -295,6 +296,48 @@ async def demo10_parse(
         try:
             async for event in demo10_liteparse_service.stream_parse(
                 file_bytes, filename, use_model, do_summarize
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 10B: LiteParse → Foundry hosted agent — PDF attachment + agent by name
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/api/demo-10b/chat", tags=["Demo 10B"])
+async def demo10b_chat(
+    file: UploadFile = File(...),
+    question: str = Form(...),
+    agent_name: str = Form(default=""),
+):
+    if file.content_type not in ("application/pdf",):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
+
+    if not question.strip():
+        raise HTTPException(status_code=400, detail="A question is required.")
+
+    use_agent = agent_name.strip() or settings.foundry_agent_name
+    if not use_agent:
+        raise HTTPException(status_code=400, detail="No agent name configured.")
+
+    filename = file.filename or "document.pdf"
+
+    async def _stream():
+        try:
+            async for event in demo10b_liteparse_agent_service.stream_liteparse_agent(
+                file_bytes, filename, question, use_agent
             ):
                 yield f"data: {json.dumps(event)}\n\n"
         except Exception as exc:
