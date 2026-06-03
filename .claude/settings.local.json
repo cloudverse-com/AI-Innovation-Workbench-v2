@@ -48,7 +48,27 @@
       "PowerShell(head -50)",
       "PowerShell(Get-ChildItem \"c:\\\\CloudVerse\\\\AI-Innovation-Workbench-v2\\\\frontend\" -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem \"c:\\\\CloudVerse\\\\AI-Innovation-Workbench-v2\\\\frontend\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName })",
-      "PowerShell(pip install liteparse>=2.0.0)"
+      "PowerShell(pip install liteparse>=2.0.0)",
+      "Bash(python -c \"import agent_framework, os; print\\(os.path.dirname\\(agent_framework.__file__\\)\\)\")",
+      "Bash(python -c \"import semantic_kernel, os; print\\(semantic_kernel.__version__, os.path.dirname\\(semantic_kernel.__file__\\)\\)\")",
+      "Read(//c/Users/newpc/AppData/Local/Programs/Python/Python312/Lib/site-packages/agent_framework/**)",
+      "Bash(dir /b)",
+      "Bash(findstr /s /i /m /C:\"VectorStore\" /C:\"InMemory\" /C:\"VectorCollection\" /C:\"embedding\" *.py)",
+      "Bash(pip list *)",
+      "Bash(python -c \"import importlib.metadata as m; reqs=m.requires\\('semantic-kernel'\\); [print\\(r\\) for r in reqs if 'azure-ai-projects' in r.lower\\(\\)]\")",
+      "Bash(python -c \"import importlib.metadata as m; reqs=m.requires\\('semantic-kernel'\\); [print\\(r\\) for r in reqs if 'azure' in r.lower\\(\\)]\")",
+      "Bash(python -m py_compile backend/services/demo10b_liteparse_agent_service.py backend/routes/api.py backend/main.py)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Read(//c/Users/newpc/AppData/Local/Programs/Python/Python312/Lib/site-packages/semantic_kernel/**)",
+      "Bash(python -c \"import semantic_kernel.connectors.in_memory as m; print\\([n for n in dir\\(m\\) if 'InMemory' in n or 'Store' in n or 'Collection' in n]\\)\")",
+      "Bash(python -c \"from semantic_kernel.data.vector import vectorstoremodel, VectorStoreField; print\\('ok vector model api'\\)\")",
+      "Bash(python -c \"from semantic_kernel.connectors.ai.open_ai import AzureTextEmbedding; print\\('ok AzureTextEmbedding'\\)\")",
+      "Bash(python -c \"from agent_framework.foundry import FoundryChatClient; print\\('FoundryChatClient imports OK'\\)\")",
+      "Bash(python -c \"from semantic_kernel.connectors.in_memory import InMemoryStore, InMemoryCollection; from semantic_kernel.data.vector import vectorstoremodel, VectorStoreField; from semantic_kernel.connectors.ai.open_ai import AzureTextEmbedding; print\\('SK in-memory vector store + AzureTextEmbedding import OK'\\)\")",
+      "Bash(python -c \"import importlib.metadata as m; print\\('azure-ai-projects:', m.version\\('azure-ai-projects'\\)\\)\")",
+      "Bash(python -c \"import azure.ai.projects, os; print\\('import OK ->', os.path.dirname\\(azure.ai.projects.__file__\\)\\)\")",
+      "Bash(python -c \"import importlib.metadata as m; print\\('azure-ai-projects pulled in by:'\\); [print\\(' -', d.metadata['Name']\\) for d in m.distributions\\(\\) if any\\('azure-ai-projects' in \\(r or ''\\) for r in \\(d.requires or []\\)\\)]\")"
     ]
   }
 }

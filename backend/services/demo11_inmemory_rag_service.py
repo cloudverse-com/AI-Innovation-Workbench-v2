@@ -1,35 +1,41 @@
 """
-Demo 11: In-Memory PDF Q&A (RAG)
-=================================
-Uses Microsoft Agent Framework's in-memory approach:
-  1. Upload a PDF → text is extracted, chunked, and stored in a server-side session.
-  2. For each question, the top-k relevant chunks are retrieved via keyword scoring
-     and injected as context into an MS Agent (FoundryChatClient) which streams the answer.
+Demo 11: In-Memory PDF Q&A (RAG) — Semantic Kernel vector store
+================================================================
+Real semantic retrieval, fully in-memory, two libraries each doing what they
+do best:
 
-No external vector database or embedding model required — all retrieval is in-memory.
+  1. Parse    — LiteParse (Rust-powered, local) extracts layout-aware text.
+  2. Chunk    — text is split per page into overlapping windows.
+  3. Embed +  — Semantic Kernel's InMemoryCollection stores each chunk with an
+     store      Azure OpenAI embedding and performs cosine-similarity search.
+  4. Answer   — the Microsoft Agent Framework agent (FoundryChatClient) is
+                grounded on the retrieved chunks and streams the answer.
+
+No external vector database — each session owns an in-memory SK collection.
 Two endpoints:
-  POST /api/demo-11/index  — parse PDF, store chunks, return session_id
+  POST /api/demo-11/index  — parse PDF, embed + store chunks, return session_id
   POST /api/demo-11/ask   — given session_id + question, stream the answer
 """
 
 import asyncio
-import re
 import uuid
-from typing import AsyncGenerator
+from dataclasses import dataclass
+from typing import Annotated, AsyncGenerator
 
-import fitz  # pymupdf
+from semantic_kernel.connectors.ai.open_ai import AzureTextEmbedding
+from semantic_kernel.connectors.in_memory import InMemoryCollection
+from semantic_kernel.data.vector import DistanceFunction, VectorStoreField, vectorstoremodel
 
+from backend.config import settings
+from backend.services.demo10_liteparse_service import _parse_pdf
 from backend.services.foundry_client import create_agent
 
-# ── Chunking parameters ───────────────────────────────────────────────────────
-_CHUNK_SIZE = 600        # characters per chunk
-_CHUNK_OVERLAP = 100     # overlap between adjacent chunks
-_TOP_K = 5               # chunks retrieved per question
+# ── Chunking / retrieval parameters ───────────────────────────────────────────
+_CHUNK_SIZE = 1_200        # characters per chunk
+_CHUNK_OVERLAP = 200       # overlap between adjacent chunks
+_TOP_K = 5                 # chunks retrieved per question
 _MAX_CONTEXT_CHARS = 6_000  # hard cap on total injected context
-
-# ── In-memory session store ───────────────────────────────────────────────────
-# Maps session_id -> {"chunks": list[str], "filename": str, "char_count": int}
-_sessions: dict[str, dict] = {}
+_EMBED_DIM = settings.azure_openai_embedding_dimensions
 
 _SYSTEM_PROMPT = (
     "You are a precise document Q&A assistant. "
@@ -39,74 +45,118 @@ _SYSTEM_PROMPT = (
 )
 
 
-# ── Text extraction ───────────────────────────────────────────────────────────
+# ── Vector record model ───────────────────────────────────────────────────────
+# The `embedding` field is populated with the chunk text before upsert; Semantic
+# Kernel embeds that text in place and overwrites it with the float vector.
+@vectorstoremodel
+@dataclass
+class _DocChunk:
+    chunk_id: Annotated[str, VectorStoreField("key")]
+    text: Annotated[str, VectorStoreField("data")]
+    page: Annotated[int, VectorStoreField("data")] = 0
+    embedding: Annotated[
+        str | list[float] | None,
+        VectorStoreField(
+            "vector",
+            dimensions=_EMBED_DIM,
+            distance_function=DistanceFunction.COSINE_SIMILARITY,
+        ),
+    ] = None
 
-def _extract_text(file_bytes: bytes) -> str:
-    """Extract all text from a PDF (runs in a worker thread)."""
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
-    return "\n".join(page.get_text() for page in doc).strip()
+
+# ── In-memory session store ───────────────────────────────────────────────────
+# Maps session_id -> {"collection": InMemoryCollection, "filename": str,
+#                     "chunk_count": int, "char_count": int}
+_sessions: dict[str, dict] = {}
+
+
+def _get_embedder() -> AzureTextEmbedding:
+    """Build the Azure OpenAI embedding generator from settings."""
+    if not settings.azure_openai_endpoint or not settings.azure_openai_api_key:
+        raise ValueError(
+            "Azure OpenAI embedding is not configured. Set AZURE_OPENAI_ENDPOINT, "
+            "AZURE_OPENAI_API_KEY and AZURE_OPENAI_EMBEDDING_DEPLOYMENT in backend/.env."
+        )
+    return AzureTextEmbedding(
+        endpoint=settings.azure_openai_endpoint,
+        api_key=settings.azure_openai_api_key,
+        deployment_name=settings.azure_openai_embedding_deployment,
+        api_version=settings.azure_openai_api_version,
+    )
 
 
 # ── Chunking ──────────────────────────────────────────────────────────────────
 
-def _chunk_text(text: str) -> list[str]:
-    """Split text into overlapping fixed-size chunks."""
+def _chunk_pages(pages: list[dict]) -> list[tuple[str, int]]:
+    """Split each LiteParse page into overlapping windows, keeping the page number."""
     step = _CHUNK_SIZE - _CHUNK_OVERLAP
-    chunks = []
-    for i in range(0, len(text), step):
-        chunk = text[i : i + _CHUNK_SIZE].strip()
-        if chunk:
-            chunks.append(chunk)
-    return chunks
-
-
-# ── Keyword retrieval ─────────────────────────────────────────────────────────
-
-def _search_chunks(chunks: list[str], query: str, top_k: int = _TOP_K) -> list[str]:
-    """Return the top-k chunks most relevant to the query via term-frequency scoring."""
-    terms = re.findall(r"\w+", query.lower())
-    if not terms:
-        return chunks[:top_k]
-
-    scored = []
-    for chunk in chunks:
-        lower = chunk.lower()
-        score = sum(lower.count(t) for t in terms)
-        scored.append((chunk, score))
-
-    scored.sort(key=lambda x: -x[1])
-
-    # Return matches with score > 0; fall back to first chunks if nothing matches
-    results = [c for c, s in scored[:top_k] if s > 0]
-    return results or chunks[:top_k]
+    out: list[tuple[str, int]] = []
+    for page in pages:
+        text = (page.get("text") or "").strip()
+        if not text:
+            blocks = page.get("blocks") or []
+            text = " ".join(b.get("text", "") for b in blocks).strip()
+        if not text:
+            continue
+        page_num = page.get("page", 0)
+        for i in range(0, len(text), step):
+            piece = text[i : i + _CHUNK_SIZE].strip()
+            if piece:
+                out.append((piece, page_num))
+    return out
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
 async def stream_index(file_bytes: bytes, filename: str) -> AsyncGenerator:
     """
-    Parse a PDF, chunk its text, and store in memory.
+    Parse a PDF, embed its chunks into an in-memory SK vector store, and keep the
+    collection in a server-side session.
     Yields SSE-compatible dicts ending with {"done": True, "session_id": ...}.
     """
     session_id = str(uuid.uuid4())
 
-    yield {"status": "extracting", "message": f"Extracting text from {filename}…"}
+    yield {"status": "extracting", "message": f"Parsing {filename} with LiteParse…"}
 
     try:
-        text = await asyncio.to_thread(_extract_text, file_bytes)
+        parsed = await asyncio.to_thread(_parse_pdf, file_bytes)
     except Exception as exc:
-        yield {"error": f"Failed to extract text: {exc}"}
+        yield {"error": f"LiteParse failed: {exc}"}
         return
 
-    if not text:
+    if not parsed["full_text"]:
         yield {"error": "No text found in this PDF. It may be a scanned image."}
         return
 
-    chunks = _chunk_text(text)
+    chunks = _chunk_pages(parsed["pages"])
+    if not chunks:
+        yield {"error": "No extractable text chunks were produced from this PDF."}
+        return
+
+    yield {"status": "extracting", "message": f"Embedding {len(chunks)} chunks…"}
+
+    try:
+        embedder = _get_embedder()
+        collection = InMemoryCollection(
+            record_type=_DocChunk,
+            collection_name=f"doc_{session_id}",
+            embedding_generator=embedder,
+        )
+        await collection.ensure_collection_exists()
+        records = [
+            _DocChunk(chunk_id=str(i), text=text, page=page, embedding=text)
+            for i, (text, page) in enumerate(chunks)
+        ]
+        await collection.upsert(records)
+    except Exception as exc:
+        yield {"error": f"Embedding/indexing failed: {exc}"}
+        return
+
     _sessions[session_id] = {
-        "chunks": chunks,
+        "collection": collection,
         "filename": filename,
-        "char_count": len(text),
+        "chunk_count": len(chunks),
+        "char_count": parsed["char_count"],
     }
 
     yield {
@@ -114,13 +164,14 @@ async def stream_index(file_bytes: bytes, filename: str) -> AsyncGenerator:
         "session_id": session_id,
         "filename": filename,
         "chunk_count": len(chunks),
-        "char_count": len(text),
+        "char_count": parsed["char_count"],
+        "page_count": parsed["page_count"],
     }
 
 
 async def stream_ask(session_id: str, question: str, model: str) -> AsyncGenerator:
     """
-    Retrieve relevant chunks for the question and stream an LLM answer.
+    Vector-search the session's chunks for the question and stream an LLM answer.
     Yields SSE-compatible dicts ending with {"done": True, ...}.
     """
     session = _sessions.get(session_id)
@@ -128,18 +179,25 @@ async def stream_ask(session_id: str, question: str, model: str) -> AsyncGenerat
         yield {"error": "Session expired or not found. Please re-upload your PDF."}
         return
 
+    collection: InMemoryCollection = session["collection"]
+
     yield {"status": "searching", "message": "Searching document chunks…"}
 
-    relevant = _search_chunks(session["chunks"], question)
+    try:
+        search_results = await collection.search(question, top=_TOP_K)
+        hits = [(r.record, r.score) async for r in search_results.results]
+    except Exception as exc:
+        yield {"error": f"Vector search failed: {exc}"}
+        return
 
-    # Trim to context budget
+    # Trim to the context budget, preserving similarity order.
     context_parts: list[str] = []
     total = 0
-    for chunk in relevant:
-        if total + len(chunk) > _MAX_CONTEXT_CHARS:
+    for record, _score in hits:
+        if total + len(record.text) > _MAX_CONTEXT_CHARS:
             break
-        context_parts.append(chunk)
-        total += len(chunk)
+        context_parts.append(record.text)
+        total += len(record.text)
 
     context = "\n\n---\n\n".join(context_parts)
     chunks_used = len(context_parts)

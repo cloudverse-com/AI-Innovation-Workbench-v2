@@ -70,7 +70,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo08', routeId: 'demo-08',
-    title: 'PDF Entity Extractor', subtitle: 'PyMuPDF + MS Agent (LLM only)',
+    title: 'Document Q&A MAF Agent', subtitle: 'PyMuPDF + MAF Agent',
     category: 'Advanced Features', icon: '🏷️',
     description: 'Upload any PDF — PyMuPDF extracts the text, then an MS Agent calls the LLM to extract named entities: people, organizations, locations, dates, amounts, and key terms. No Azure Content Understanding required.',
     highlights: ['PyMuPDF text extraction', 'Agent + FoundryChatClient', 'LLM-based NER', 'Six entity categories'],
@@ -79,7 +79,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo09', routeId: 'demo-09',
-    title: 'Document Q&A Agent', subtitle: 'Hosted Agent + PDF Attachment',
+    title: 'Document Q&A Foundry Agent', subtitle: 'PyMuPDF + Foundry Agent',
     category: 'Advanced Features', icon: '📎',
     description: 'Attach a PDF and ask a question. The document text is extracted (pymupdf) and sent together with your question to a hosted Azure AI Foundry agent, which streams its answer back.',
     highlights: ['PDF upload (drag & drop)', 'PDF text extraction', 'Hosted FoundryAgent by name', 'Streaming SSE response'],
@@ -87,13 +87,22 @@ const DEMOS: Demo[] = [
     inputPlaceholder: 'Attach a PDF and ask a question...',
   },
   {
-    id: 'demo10', routeId: 'demo-10',
-    title: 'Document Layout Parser', subtitle: 'LiteParse · Spatial + Bounding Boxes',
+    id: 'demo10a', routeId: 'demo-10',
+    title: 'Document Layout Parser', subtitle: '10A · LiteParse Spatial + Bounding Boxes',
     category: 'Advanced Features', icon: '🗺️',
     description: 'Upload a PDF and parse it locally with LiteParse — a Rust-powered, offline spatial parser. See page-by-page text with bounding box coordinates for every block, plus an optional AI summary.',
     highlights: ['LiteParse (Rust, local, no cloud)', 'Spatial bounding boxes', 'Per-page structured text', 'Optional AI summary'],
     supportsFileUpload: true,
     inputPlaceholder: 'Upload a PDF to parse its layout...',
+  },
+  {
+    id: 'demo10b', routeId: 'demo-10b',
+    title: 'LiteParse → Foundry Agent', subtitle: '10B · LiteParse + Hosted Agent',
+    category: 'Advanced Features', icon: '📨',
+    description: 'Attach a PDF and ask a question. The document is parsed locally with LiteParse, then the extracted text is sent together with your question to a hosted Azure AI Foundry agent (by name), which streams its answer back.',
+    highlights: ['LiteParse (Rust, local, no cloud)', 'Hosted FoundryAgent by name', 'Layout-aware text extraction', 'Streaming SSE response'],
+    supportsFileUpload: true,
+    inputPlaceholder: 'Attach a PDF and ask the Foundry agent...',
   },
   {
     id: 'demo11', routeId: 'demo-11',
