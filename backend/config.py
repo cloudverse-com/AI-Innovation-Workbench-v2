@@ -123,6 +123,28 @@ class Settings:
         default_factory=lambda: os.getenv("AZURE_OPENAI_API_VERSION", "2024-10-21")
     )
 
+    # --- Azure AI Search grounding (Demo 12 — Agent grounded with AI Search) ---
+    # Full Foundry *project connection* ID for your Azure AI Search connection
+    # (NOT the search service resource ID). Format:
+    # /subscriptions/.../providers/Microsoft.CognitiveServices/accounts/<foundry>/projects/<proj>/connections/<name>
+    azure_ai_search_connection_id: str = field(
+        default_factory=lambda: os.getenv("AZURE_AI_SEARCH_CONNECTION_ID", "")
+    )
+    # Name of the index inside the connected Azure AI Search resource
+    azure_ai_search_index: str = field(
+        default_factory=lambda: os.getenv("AZURE_AI_SEARCH_INDEX", "")
+    )
+    # Query type: simple | semantic | vector | vector_simple_hybrid | vector_semantic_hybrid
+    # "simple" works on any index; the hybrid/vector modes need vector fields
+    # (and a semantic configuration for the *_semantic_* variants).
+    azure_ai_search_query_type: str = field(
+        default_factory=lambda: os.getenv("AZURE_AI_SEARCH_QUERY_TYPE", "simple")
+    )
+    # Number of chunks the tool retrieves per query
+    azure_ai_search_top_k: int = field(
+        default_factory=lambda: int(os.getenv("AZURE_AI_SEARCH_TOP_K", "5"))
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(
