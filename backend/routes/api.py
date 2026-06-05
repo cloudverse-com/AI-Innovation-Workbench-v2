@@ -22,6 +22,7 @@ from backend.services import (
     demo10_liteparse_service,
     demo10b_liteparse_agent_service,
     demo11_inmemory_rag_service,
+    demo12_ai_search_agent_service,
 )
 
 router = APIRouter()
@@ -402,6 +403,66 @@ async def demo11_ask(
                 yield f"data: {json.dumps(event)}\n\n"
         except Exception as exc:
             yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 12: Agent Grounded with AI Search — managed RAG over an existing index
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Demo12Request(BaseModel):
+    message: str
+    model: str = settings.default_model
+    system_prompt: str = ""
+
+
+@router.get("/api/demo-12/config", tags=["Demo 12"])
+async def demo12_config():
+    configured = bool(
+        settings.foundry_project_endpoint
+        and settings.azure_ai_search_connection_id
+        and settings.azure_ai_search_index
+    )
+    return {
+        "configured": configured,
+        "index_name": settings.azure_ai_search_index,
+        "query_type": settings.azure_ai_search_query_type,
+        "top_k": settings.azure_ai_search_top_k,
+    }
+
+
+@router.post("/api/demo-12/chat/stream", tags=["Demo 12"])
+async def demo12_chat_stream(request: Demo12Request):
+    system_prompt = request.system_prompt.strip() or None
+
+    async def _stream():
+        citations: list = []
+        try:
+            async for event in demo12_ai_search_agent_service.stream(
+                request.message, request.model, system_prompt
+            ):
+                if isinstance(event, dict):
+                    citations = event.get("citations", citations)
+                    continue
+                yield f"data: {json.dumps({'token': event})}\n\n"
+
+            # Render harvested sources as a markdown footer so they're visible
+            # even without any frontend citation rendering.
+            if citations:
+                footer = "\n\n**Sources:**\n" + "\n".join(
+                    f"- [{c['title']}]({c['url']})" if c.get("url") else f"- {c['title']}"
+                    for c in citations
+                )
+                yield f"data: {json.dumps({'token': footer})}\n\n"
+
+            yield f"data: {json.dumps({'done': True, 'citations': citations})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
     return StreamingResponse(
         _stream(),

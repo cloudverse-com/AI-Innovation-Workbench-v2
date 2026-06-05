@@ -30,9 +30,14 @@ Be concise. Use bullet points where appropriate.
 """
 
 
-def _parse_pdf(file_bytes: bytes) -> dict:
-    """Run LiteParse synchronously (called in a worker thread)."""
-    parser = LiteParse()
+def _parse_pdf(file_bytes: bytes, ocr_enabled: bool | None = None) -> dict:
+    """Run LiteParse synchronously (called in a worker thread).
+
+    ``ocr_enabled`` controls LiteParse's OCR pass. Default (None) keeps
+    LiteParse's own default. Pass ``False`` to skip OCR entirely — this avoids
+    the Tesseract dependency and is the right choice for digital/text PDFs.
+    """
+    parser = LiteParse(ocr_enabled=ocr_enabled)
     start = time.perf_counter()
     result = parser.parse(file_bytes)
     elapsed_ms = round((time.perf_counter() - start) * 1000)

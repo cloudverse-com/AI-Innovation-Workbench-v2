@@ -119,13 +119,16 @@ async def stream_index(file_bytes: bytes, filename: str) -> AsyncGenerator:
     yield {"status": "extracting", "message": f"Parsing {filename} with LiteParse…"}
 
     try:
-        parsed = await asyncio.to_thread(_parse_pdf, file_bytes)
+        # OCR disabled: demo 11 grounds on the PDF's text layer, so it does not
+        # need (and must not hard-depend on) Tesseract. Scanned/image-only PDFs
+        # simply yield no text and get the graceful message below.
+        parsed = await asyncio.to_thread(_parse_pdf, file_bytes, ocr_enabled=False)
     except Exception as exc:
         yield {"error": f"LiteParse failed: {exc}"}
         return
 
     if not parsed["full_text"]:
-        yield {"error": "No text found in this PDF. It may be a scanned image."}
+        yield {"error": "No text found in this PDF. It may be a scanned image (this demo reads digital/text PDFs)."}
         return
 
     chunks = _chunk_pages(parsed["pages"])

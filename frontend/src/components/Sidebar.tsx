@@ -113,6 +113,15 @@ const DEMOS: Demo[] = [
     supportsFileUpload: true,
     inputPlaceholder: 'Upload a PDF, then ask questions about it...',
   },
+  {
+    id: 'demo12', routeId: 'demo-12',
+    title: 'Agent + AI Search', subtitle: 'Grounded RAG · Azure AI Search',
+    category: 'Advanced Features', icon: '🔎',
+    description: 'A Microsoft Agent Framework agent grounded on an existing Azure AI Search index. Foundry runs the retrieval server-side via the hosted AI Search tool and answers with citations — no local chunking or vector store.',
+    highlights: ['FoundryChatClient.get_azure_ai_search_tool()', 'Managed retrieval (server-side)', 'Existing AI Search index', 'Inline citations + sources'],
+    supportsStreaming: true,
+    inputPlaceholder: 'Ask a question grounded in the AI Search index...',
+  },
 ]
 
 const CATEGORY_ORDER: DemoCategory[] = [
