@@ -9,7 +9,7 @@ interface UseChatOptions {
 }
 
 // Demos that return streaming SSE
-const STREAMING_DEMOS = new Set(['demo01', 'demo04', 'demo05', 'demo12'])
+const STREAMING_DEMOS = new Set(['demo01', 'demo04', 'demo05', 'demo12', 'demo13'])
 
 // Demos that return regular JSON (non-streaming)
 const NON_STREAMING_DEMOS = new Set(['demo02', 'demo03'])
@@ -84,6 +84,17 @@ export function useChat({ demoId, settings }: UseChatOptions) {
     )
   }, [])
 
+  const appendToolCall = useCallback((tool: string, msgId: string) => {
+    setMessages(prev =>
+      prev.map(m => {
+        if (m.id !== msgId) return m
+        const existing = m.toolsUsed ?? []
+        if (existing.some(t => t.tool === tool)) return m   // dedupe
+        return { ...m, toolsUsed: [...existing, { tool, args: {} }] }
+      })
+    )
+  }, [])
+
   const finalizeMessage = useCallback((msgId: string, metadata?: Record<string, unknown>) => {
     setMessages(prev =>
       prev.map(m => m.id === msgId ? { ...m, isStreaming: false, metadata } : m)
@@ -95,6 +106,12 @@ export function useChat({ demoId, settings }: UseChatOptions) {
 
   const { streamFromUrl } = useSSE({
     onToken: (token) => { if (streamingIdRef.current) appendToken(token, streamingIdRef.current) },
+    onEvent: (event) => {
+      const tool = event.tool_call
+      if (typeof tool === 'string' && streamingIdRef.current) {
+        appendToolCall(tool, streamingIdRef.current)
+      }
+    },
     onDone: (meta) => { if (streamingIdRef.current) finalizeMessage(streamingIdRef.current, meta) },
     onError: (err) => {
       setError(err)

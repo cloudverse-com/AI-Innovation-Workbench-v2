@@ -10,6 +10,7 @@ aiofiles>=24.1.0             # Async file reading for static file serving
 # ── Microsoft Agent Framework ──────────────────────────────────────────────
 agent-framework              # Agent + FoundryChatClient — core agent SDK
 azure-identity>=1.19.0       # Credential types (AzureKeyCredential, AzureCliCredential)
+mcp>=1.0.0                   # Model Context Protocol client — Demo 13 (MCPStreamableHTTPTool)
 
 # ── Semantic Kernel (Demo 11) — installed SEPARATELY, NOT in this file ──────
 # semantic-kernel pins azure-ai-projects<2.0, but agent-framework-foundry needs >=2.0.

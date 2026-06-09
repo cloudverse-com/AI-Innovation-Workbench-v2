@@ -23,6 +23,7 @@ from backend.services import (
     demo10b_liteparse_agent_service,
     demo11_inmemory_rag_service,
     demo12_ai_search_agent_service,
+    demo13_mcp_agent_service,
 )
 
 router = APIRouter()
@@ -461,6 +462,56 @@ async def demo12_chat_stream(request: Demo12Request):
                 yield f"data: {json.dumps({'token': footer})}\n\n"
 
             yield f"data: {json.dumps({'done': True, 'citations': citations})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 13: MAF Agent + MCP Tool Call — agent calls a remote MCP server
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Demo13Request(BaseModel):
+    message: str
+    model: str = settings.default_model
+    system_prompt: str = ""
+
+
+@router.get("/api/demo-13/config", tags=["Demo 13"])
+async def demo13_config():
+    return {
+        "configured": bool(settings.foundry_project_endpoint and settings.mcp_server_url),
+        "mcp_server_url": settings.mcp_server_url,
+        "mcp_server_label": settings.mcp_server_label,
+    }
+
+
+@router.post("/api/demo-13/chat/stream", tags=["Demo 13"])
+async def demo13_chat_stream(request: Demo13Request):
+    system_prompt = request.system_prompt.strip() or None
+
+    async def _stream():
+        tools_used: list = []
+        try:
+            async for event in demo13_mcp_agent_service.stream(
+                request.message, request.model, system_prompt
+            ):
+                if isinstance(event, dict):
+                    if "tool_call" in event:
+                        # Emit as a distinct (non-token) SSE event so the frontend
+                        # renders it as a styled tool-call badge, not inline text.
+                        yield f"data: {json.dumps({'tool_call': event['tool_call']})}\n\n"
+                    elif "tools_used" in event:
+                        tools_used = event.get("tools_used", tools_used)
+                    continue
+                yield f"data: {json.dumps({'token': event})}\n\n"
+
+            yield f"data: {json.dumps({'done': True, 'tools_used': tools_used})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
