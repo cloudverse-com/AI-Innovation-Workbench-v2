@@ -128,7 +128,13 @@ async def stream(
     citations: list[dict] = []
     seen: set[str] = set()
 
-    async for chunk in agent.run(message, stream=True):
+    # Force the Azure AI Search tool to run on every query. Without this the
+    # model decides whether to search, and for vague prompts (e.g. "tell me
+    # about john") it answers from nothing or asks for clarification instead of
+    # grounding. "required" guarantees retrieval — the point of this demo.
+    async for chunk in agent.run(
+        message, options={"tool_choice": "required"}, stream=True
+    ):
         _harvest_citations(chunk, citations, seen)
         if chunk.text:
             yield chunk.text

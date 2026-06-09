@@ -14,7 +14,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo02', routeId: 'demo-02',
-    title: 'Foundry Agents', subtitle: 'Hosted Agents + Threads',
+    title: 'Hosted - Agents & Threads', subtitle: 'Hosted Agents + Threads',
     category: 'Core Capabilities', icon: '🤖',
     description: 'Azure AI Foundry hosted agents with persistent threads. Agents store their own state in the cloud.',
     highlights: ['create_agent()', 'create_thread()', 'create_and_process_run()', 'Reusable agent IDs'],
@@ -70,7 +70,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo08', routeId: 'demo-08',
-    title: 'Document Q&A MAF Agent', subtitle: 'PyMuPDF + MAF Agent',
+    title: 'MAF - Document Q&A', subtitle: 'PyMuPDF + MAF Agent',
     category: 'Advanced Features', icon: '🏷️',
     description: 'Upload any PDF — PyMuPDF extracts the text, then an MS Agent calls the LLM to extract named entities: people, organizations, locations, dates, amounts, and key terms. No Azure Content Understanding required.',
     highlights: ['PyMuPDF text extraction', 'Agent + FoundryChatClient', 'LLM-based NER', 'Six entity categories'],
@@ -79,7 +79,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo09', routeId: 'demo-09',
-    title: 'Document Q&A Foundry Agent', subtitle: 'PyMuPDF + Foundry Agent',
+    title: 'Hosted - Document Q&A', subtitle: 'PyMuPDF + Foundry Agent',
     category: 'Advanced Features', icon: '📎',
     description: 'Attach a PDF and ask a question. The document text is extracted (pymupdf) and sent together with your question to a hosted Azure AI Foundry agent, which streams its answer back.',
     highlights: ['PDF upload (drag & drop)', 'PDF text extraction', 'Hosted FoundryAgent by name', 'Streaming SSE response'],
@@ -97,7 +97,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo10b', routeId: 'demo-10b',
-    title: 'LiteParse → Foundry Agent', subtitle: '10B · LiteParse + Hosted Agent',
+    title: 'Hosted - LiteParse Q&A', subtitle: '10B · LiteParse + Hosted Agent',
     category: 'Advanced Features', icon: '📨',
     description: 'Attach a PDF and ask a question. The document is parsed locally with LiteParse, then the extracted text is sent together with your question to a hosted Azure AI Foundry agent (by name), which streams its answer back.',
     highlights: ['LiteParse (Rust, local, no cloud)', 'Hosted FoundryAgent by name', 'Layout-aware text extraction', 'Streaming SSE response'],
@@ -106,7 +106,7 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo11', routeId: 'demo-11',
-    title: 'In-Memory PDF Q&A', subtitle: 'Chunked RAG · No Vector DB',
+    title: 'MAF - In-Memory RAG', subtitle: 'Chunked RAG · No Vector DB',
     category: 'Advanced Features', icon: '🧩',
     description: 'Upload a PDF — it is chunked and stored in an in-memory session. Ask multiple questions and get answers streamed back via an MS Agent that retrieves only the relevant chunks per question.',
     highlights: ['In-memory chunk store', 'Keyword-scored retrieval', 'Multi-turn Q&A', 'No external vector DB'],
@@ -115,12 +115,21 @@ const DEMOS: Demo[] = [
   },
   {
     id: 'demo12', routeId: 'demo-12',
-    title: 'Agent + AI Search', subtitle: 'Grounded RAG · Azure AI Search',
+    title: 'MAF - AI Search RAG', subtitle: 'Grounded RAG · Azure AI Search',
     category: 'Advanced Features', icon: '🔎',
     description: 'A Microsoft Agent Framework agent grounded on an existing Azure AI Search index. Foundry runs the retrieval server-side via the hosted AI Search tool and answers with citations — no local chunking or vector store.',
     highlights: ['FoundryChatClient.get_azure_ai_search_tool()', 'Managed retrieval (server-side)', 'Existing AI Search index', 'Inline citations + sources'],
     supportsStreaming: true,
     inputPlaceholder: 'Ask a question grounded in the AI Search index...',
+  },
+  {
+    id: 'demo13', routeId: 'demo-13',
+    title: 'MAF - MCP Tool', subtitle: 'MAF + Remote MCP Server',
+    category: 'Advanced Features', icon: '🔌',
+    description: 'A Microsoft Agent Framework agent connected to the official Microsoft Learn MCP Server (free, public, no auth). The agent auto-discovers the server\'s tools and calls them live — over the open Model Context Protocol — to ground answers in real Microsoft documentation.',
+    highlights: ['MCPStreamableHTTPTool (Streamable HTTP)', 'Microsoft Learn MCP Server', 'Auto-discovered remote tools', 'Live tool-call banners + doc citations'],
+    supportsStreaming: true,
+    inputPlaceholder: 'Ask about Azure, .NET, M365… e.g. "How do I create an Azure AI Search index?"',
   },
 ]
 

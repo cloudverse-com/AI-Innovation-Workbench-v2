@@ -145,6 +145,18 @@ class Settings:
         default_factory=lambda: int(os.getenv("AZURE_AI_SEARCH_TOP_K", "5"))
     )
 
+    # --- MCP tool calling (Demo 13 — MAF Agent + MCP Tool Call) ---
+    # URL of the remote MCP server the agent connects to (Streamable HTTP transport).
+    # Defaults to the official Microsoft Learn MCP Server — free, public, no auth —
+    # so the demo works out of the box. Point this at any MCP server to re-target it.
+    mcp_server_url: str = field(
+        default_factory=lambda: os.getenv("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
+    )
+    # Friendly label shown in the UI and used as the MCP tool name.
+    mcp_server_label: str = field(
+        default_factory=lambda: os.getenv("MCP_SERVER_LABEL", "Microsoft Learn")
+    )
+
     # --- Security ---
     # The API key that the frontend must send in the X-API-Key header
     demo_api_key: str = field(
