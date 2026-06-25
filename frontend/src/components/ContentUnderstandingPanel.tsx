@@ -18,6 +18,10 @@ interface AnalysisContent {
   fields?: Record<string, AnalysisField>
   markdown?: string
   kind?: string
+  category?: string
+  analyzerId?: string
+  startPageNumber?: number
+  endPageNumber?: number
 }
 
 interface AnalysisResult {
@@ -30,6 +34,70 @@ interface AnalysisResult {
   analyzer_id?: string
 }
 
+
+// "DoctorVisitSummary" -> "Doctor Visit Summary"
+function humanizeCategory(cat: string): string {
+  return cat
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .trim()
+}
+
+// Stable color per category so the five routes are visually distinct.
+const CATEGORY_STYLES = [
+  'bg-blue-100 text-blue-700 border-blue-200',
+  'bg-rose-100 text-rose-700 border-rose-200',
+  'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'bg-amber-100 text-amber-700 border-amber-200',
+  'bg-violet-100 text-violet-700 border-violet-200',
+  'bg-cyan-100 text-cyan-700 border-cyan-200',
+]
+function categoryStyle(cat: string): string {
+  let hash = 0
+  for (let i = 0; i < cat.length; i++) hash = (hash * 31 + cat.charCodeAt(i)) >>> 0
+  return CATEGORY_STYLES[hash % CATEGORY_STYLES.length]
+}
+
+function pageLabel(content: AnalysisContent): string | null {
+  const { startPageNumber: s, endPageNumber: e } = content
+  if (s == null) return null
+  return s === e || e == null ? `Page ${s}` : `Pages ${s}–${e}`
+}
+
+// Header strip shown above each classified segment (classifier runs only).
+function SegmentHeader({ content, index }: { content: AnalysisContent; index: number }) {
+  const category = content.category
+  const analyzerId = content.analyzerId
+  if (!category && !analyzerId) return null
+  const fieldCount = content.fields ? Object.keys(content.fields).length : 0
+  const page = pageLabel(content)
+
+  return (
+    <div className="px-4 py-2.5 bg-white border-b border-ms-gray-200 flex items-center gap-2 flex-wrap">
+      <span className="w-5 h-5 flex-shrink-0 rounded-full bg-ms-gray-800 text-white text-xs font-semibold flex items-center justify-center">
+        {index + 1}
+      </span>
+      {page && <span className="text-xs text-ms-gray-500 font-medium">{page}</span>}
+      {category && (
+        <>
+          <span className="text-ms-gray-300">→</span>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${categoryStyle(category)}`}>
+            {humanizeCategory(category)}
+          </span>
+        </>
+      )}
+      {analyzerId && (
+        <>
+          <span className="text-ms-gray-300">→</span>
+          <span className="text-xs text-ms-blue font-mono bg-ms-blue/10 px-2 py-0.5 rounded">{analyzerId}</span>
+        </>
+      )}
+      {fieldCount > 0 && (
+        <span className="text-xs text-ms-gray-400 ml-auto">{fieldCount} fields</span>
+      )}
+    </div>
+  )
+}
 
 function FieldsTable({ fields }: { fields: Record<string, AnalysisField> }) {
   const entries = Object.entries(fields).filter(([, v]) => v != null)
@@ -65,12 +133,60 @@ function FieldsTable({ fields }: { fields: Record<string, AnalysisField> }) {
   )
 }
 
+// Collapsible "Document Content" section — collapsed by default.
+function DocumentContent({ markdown }: { markdown: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`w-full px-4 py-2.5 bg-ms-gray-50 flex items-center justify-between hover:bg-ms-gray-100 transition-colors ${open ? 'border-b border-ms-gray-200' : ''}`}
+      >
+        <span className="text-xs font-semibold text-ms-gray-500 uppercase tracking-wider">Document Content</span>
+        <span className={`text-ms-gray-400 text-[10px] transition-transform ${open ? 'rotate-90' : ''}`}>▶</span>
+      </button>
+      {open && (
+        <div className="px-4 py-3 text-sm text-ms-gray-700 whitespace-pre-wrap font-mono bg-white max-h-64 overflow-y-auto scrollbar-thin">
+          {markdown}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ResultDisplay({ data }: { data: AnalysisResult }) {
-  const [showRaw, setShowRaw] = useState(false)
+  const [showRaw, setShowRaw] = useState(true)
+  const [copied, setCopied] = useState(false)
   const contents = data.result?.contents ?? []
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  // A classifier run yields multiple segments tagged with a category/analyzerId.
+  const routedSegments = contents.filter(c => c.category || c.analyzerId)
+  const isClassifierRun = routedSegments.length > 0
+  const distinctTypes = new Set(routedSegments.map(c => c.category).filter(Boolean))
 
   return (
     <div className="space-y-4">
+      {isClassifierRun && (
+        <div className="px-4 py-3 bg-ms-blue/5 border border-ms-blue/20 rounded-xl flex items-start gap-2.5">
+          <span className="text-lg leading-none mt-0.5">🔀</span>
+          <div className="text-sm text-ms-gray-700">
+            <span className="font-semibold text-ms-gray-900">Auto-routed by classifier</span>
+            {' — '}
+            {routedSegments.length} section{routedSegments.length === 1 ? '' : 's'} detected across{' '}
+            {distinctTypes.size} document type{distinctTypes.size === 1 ? '' : 's'}, each sent to its matching extractor.
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
@@ -94,8 +210,36 @@ function ResultDisplay({ data }: { data: AnalysisResult }) {
         </button>
       </div>
 
+      {/* 1. Raw JSON — shown by default, on top */}
+      {showRaw && (
+        <div className="border border-ms-gray-200 rounded-xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-ms-gray-800 border-b border-ms-gray-700 flex items-center justify-between">
+            <span className="text-xs font-semibold text-ms-gray-300 uppercase tracking-wider">Raw JSON</span>
+            <button
+              onClick={handleCopy}
+              className="text-xs font-medium text-ms-gray-300 hover:text-white px-2 py-1 rounded hover:bg-ms-gray-700 transition-colors flex items-center gap-1.5"
+            >
+              {copied ? (
+                <>
+                  <span className="text-green-400">✓</span> Copied!
+                </>
+              ) : (
+                <>
+                  <span>📋</span> Copy JSON
+                </>
+              )}
+            </button>
+          </div>
+          <pre className="px-4 py-3 text-xs text-green-400 bg-ms-gray-900 overflow-auto max-h-96 scrollbar-thin font-mono">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {/* 2. Extracted fields, then 3. collapsible document content */}
       {contents.map((content, idx) => (
         <div key={idx} className="border border-ms-gray-200 rounded-xl overflow-hidden">
+          <SegmentHeader content={content} index={idx} />
           {content.fields && Object.keys(content.fields).length > 0 && (
             <div>
               <div className="px-4 py-2.5 bg-ms-gray-50 border-b border-ms-gray-200">
@@ -104,29 +248,9 @@ function ResultDisplay({ data }: { data: AnalysisResult }) {
               <FieldsTable fields={content.fields} />
             </div>
           )}
-          {content.markdown && (
-            <div>
-              <div className="px-4 py-2.5 bg-ms-gray-50 border-b border-ms-gray-200">
-                <span className="text-xs font-semibold text-ms-gray-500 uppercase tracking-wider">Document Content</span>
-              </div>
-              <div className="px-4 py-3 text-sm text-ms-gray-700 whitespace-pre-wrap font-mono bg-white max-h-64 overflow-y-auto scrollbar-thin">
-                {content.markdown}
-              </div>
-            </div>
-          )}
+          {content.markdown && <DocumentContent markdown={content.markdown} />}
         </div>
       ))}
-
-      {showRaw && (
-        <div className="border border-ms-gray-200 rounded-xl overflow-hidden">
-          <div className="px-4 py-2.5 bg-ms-gray-800 border-b border-ms-gray-700">
-            <span className="text-xs font-semibold text-ms-gray-300 uppercase tracking-wider">Raw JSON</span>
-          </div>
-          <pre className="px-4 py-3 text-xs text-green-400 bg-ms-gray-900 overflow-auto max-h-96 scrollbar-thin font-mono">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </div>
-      )}
     </div>
   )
 }
