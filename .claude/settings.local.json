@@ -68,7 +68,15 @@
       "Bash(python -c \"from semantic_kernel.connectors.in_memory import InMemoryStore, InMemoryCollection; from semantic_kernel.data.vector import vectorstoremodel, VectorStoreField; from semantic_kernel.connectors.ai.open_ai import AzureTextEmbedding; print\\('SK in-memory vector store + AzureTextEmbedding import OK'\\)\")",
       "Bash(python -c \"import importlib.metadata as m; print\\('azure-ai-projects:', m.version\\('azure-ai-projects'\\)\\)\")",
       "Bash(python -c \"import azure.ai.projects, os; print\\('import OK ->', os.path.dirname\\(azure.ai.projects.__file__\\)\\)\")",
-      "Bash(python -c \"import importlib.metadata as m; print\\('azure-ai-projects pulled in by:'\\); [print\\(' -', d.metadata['Name']\\) for d in m.distributions\\(\\) if any\\('azure-ai-projects' in \\(r or ''\\) for r in \\(d.requires or []\\)\\)]\")"
+      "Bash(python -c \"import importlib.metadata as m; print\\('azure-ai-projects pulled in by:'\\); [print\\(' -', d.metadata['Name']\\) for d in m.distributions\\(\\) if any\\('azure-ai-projects' in \\(r or ''\\) for r in \\(d.requires or []\\)\\)]\")",
+      "PowerShell(python -c \"import agent_framework as af; print\\([n for n in dir\\(af\\) if 'ool' in n or 'unction' in n]\\)\" 2>&1)",
+      "PowerShell(python -c \"import inspect, agent_framework as af; f=getattr\\(af,'ai_function',None\\); print\\(inspect.signature\\(f\\) if f else 'none'\\)\" 2>&1)",
+      "Bash(python -m uvicorn backend.main:app --port 8000)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(curl -s -N -X POST http://localhost:8000/api/demo-14/chat/stream -H 'Content-Type: application/json' -H 'X-API-Key: demo-key-12345' -d '{\"message\":\"In one sentence, what model are you and who made you?\",\"system_prompt\":\"\"}' --max-time 90)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force; \"stopped PID $_\" } catch {} })",
+      "Bash(curl -s http://localhost:8000/)",
+      "Bash(curl -s http://localhost:8000/api/demo-14/config)"
     ]
   }
 }

@@ -131,6 +131,15 @@ const DEMOS: Demo[] = [
     supportsStreaming: true,
     inputPlaceholder: 'Ask about Azure, .NET, M365… e.g. "How do I create an Azure AI Search index?"',
   },
+  {
+    id: 'demo14', routeId: 'demo-14',
+    title: 'MAF - Claude Model', subtitle: 'MAF Agent on Anthropic Claude',
+    category: 'Advanced Features', icon: '✴️',
+    description: 'The same Microsoft Agent Framework agent as the other demos — but the model is Anthropic Claude, served through your Azure AI Foundry project. Demonstrates that the MAF agent abstraction is provider-agnostic: only the deployment name changes, the agent code does not.',
+    highlights: ['FoundryChatClient(model="claude-…")', 'Claude served via Azure AI Foundry', 'Same Agent() wrapper as demos 11–13', 'Streaming SSE responses'],
+    supportsStreaming: true,
+    inputPlaceholder: 'Chat with Claude running inside a MAF agent...',
+  },
 ]
 
 const CATEGORY_ORDER: DemoCategory[] = [

@@ -24,6 +24,7 @@ from backend.services import (
     demo11_inmemory_rag_service,
     demo12_ai_search_agent_service,
     demo13_mcp_agent_service,
+    demo14_claude_agent_service,
 )
 
 router = APIRouter()
@@ -462,6 +463,47 @@ async def demo12_chat_stream(request: Demo12Request):
                 yield f"data: {json.dumps({'token': footer})}\n\n"
 
             yield f"data: {json.dumps({'done': True, 'citations': citations})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Demo 14: MAF Agent + Claude Model — same agent wrapper, Claude as the model
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Demo14Request(BaseModel):
+    # This demo always runs the configured Claude model (CLAUDE_MODEL), so it
+    # intentionally has no `model` field — the global model dropdown does not
+    # apply here. Any extra fields the frontend sends (model, history) are ignored.
+    message: str
+    system_prompt: str = ""
+
+
+@router.get("/api/demo-14/config", tags=["Demo 14"])
+async def demo14_config():
+    return {
+        "configured": bool(settings.foundry_project_endpoint and settings.claude_model),
+        "model": settings.claude_model,
+    }
+
+
+@router.post("/api/demo-14/chat/stream", tags=["Demo 14"])
+async def demo14_chat_stream(request: Demo14Request):
+    system_prompt = request.system_prompt.strip() or None
+
+    async def _stream():
+        try:
+            async for token in demo14_claude_agent_service.stream(
+                request.message, system_prompt
+            ):
+                yield f"data: {json.dumps({'token': token})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
