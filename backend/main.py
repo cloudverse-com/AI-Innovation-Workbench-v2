@@ -107,6 +107,7 @@ DEMO_CODE_FILES = {
     "demo11": "backend/services/demo11_inmemory_rag_service.py",
     "demo12": "backend/services/demo12_ai_search_agent_service.py",
     "demo13": "backend/services/demo13_mcp_agent_service.py",
+    "demo14": "backend/services/demo14_claude_agent_service.py",
     "config": "backend/config.py",
 }
 

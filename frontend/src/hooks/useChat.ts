@@ -9,7 +9,7 @@ interface UseChatOptions {
 }
 
 // Demos that return streaming SSE
-const STREAMING_DEMOS = new Set(['demo01', 'demo04', 'demo05', 'demo12', 'demo13'])
+const STREAMING_DEMOS = new Set(['demo01', 'demo04', 'demo05', 'demo12', 'demo13', 'demo14'])
 
 // Demos that return regular JSON (non-streaming)
 const NON_STREAMING_DEMOS = new Set(['demo02', 'demo03'])

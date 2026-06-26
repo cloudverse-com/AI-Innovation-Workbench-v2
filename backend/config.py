@@ -48,6 +48,15 @@ class Settings:
         default_factory=lambda: os.getenv("DEFAULT_MODEL", "gpt-4.1")
     )
 
+    # --- Claude model (Demo 14 — MAF Agent on Claude) ---
+    # Deployment name of an Anthropic Claude model deployed in your Azure AI
+    # Foundry project (Models + endpoints > Deploy model > Anthropic). This is
+    # the deployment name you chose, e.g. "claude-opus-4-1" — it must match
+    # exactly. Demo 14 points the same FoundryChatClient at this model.
+    claude_model: str = field(
+        default_factory=lambda: os.getenv("CLAUDE_MODEL", "")
+    )
+
     # Raw comma-separated model list string from .env
     # e.g. "gpt-4.1,gpt-4.1-mini,gpt-4.1-nano"
     _available_models_raw: str = field(
